@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.10.0/p5.min.js"></script>
+    <meta charset="utf-8" />
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+  </head>
+  <body>
+    <main>
+    </main>
+    <script>
+        class Heart {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.r = random(30, 50);
+    this.dr = random(1, 3);
+    this.limit = 100;
+    this.fall = false; 
+    this.done = false
+    
+    this.num = floor(random(30, 50));
+    
+    this.colors = ["#abcd5e", "#14976b", "#2b67af", "#62b6de", "#f589a3", "#ef562f", "#fc8405", "#f9d531"];
+    this.c = random(this.colors);
+    
+    this.shape = [];
+    for (let i=0; i<this.num; i++) {
+      let angle = 360/this.num * i;
+      let pos = this.heartEqn(angle, this.r);
+      this.shape[i] = new Particle(pos.x, pos.y, this.c);
+    }
+    
+    
+  }
+  
+  updateHeart() {
+    for (let i=0; i<this.num; i++) {
+      let angle = 360/this.num * i;
+      
+      if (this.fall == false) {
+        this.shape[i].position = this.heartEqn(angle, this.r);
+      } else {
+        this.shape[i].updateParticle();
+      }
+      
+    }
+    
+    if (this.r < this.limit) {
+      this.r += this.dr;
+    } else {
+      this.fall = true;
+    }
+    
+  }
+  
+  displayHeart() {
+    push();
+    translate(this.x, this.y);
+    
+    let sum = 0;
+    for (let i=0; i<this.num; i++) {
+      this.shape[i].displayParticle();
+      
+      if (this.shape[i].offScreen() == true) {
+        sum += 1;
+      }
+      
+    }
+
+    if (sum == this.num) {
+      this.done = true;
+    }
+    pop();
+  }
+  
+  heartEqn(angle, r) {
+    let x = (sqrt(2) * pow(sin(angle), 3)) * r;
+    let y = (pow(-cos(angle), 3) - pow(cos(angle), 2) + 2*cos(angle)) * -r;
+
+    return createVector(x, y);
+
+  }
+}
+
+class Particle {
+  constructor(x, y, c) {
+    this.position = createVector(x, y);
+    this.velocity = p5.Vector.random2D();
+    this.acceleration = createVector(0, 0.1);
+    
+    this.c = c;
+    this.d = random(1, 10);
+  }
+  
+  updateParticle() {
+    this.velocity.add(this.acceleration);
+    this.position.add(this.velocity);
+  }
+  
+  displayParticle() {
+    noStroke();
+    fill(this.c);
+    ellipse(this.position.x, this.position.y, this.d, this.d);
+  }
+  
+  offScreen() {
+    if (this.position.y > height) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
+
+let hearts = [];
+
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  angleMode(DEGREES);
+}
+
+function draw() {
+  background("#fffbe6");
+  for (let i=hearts.length-1; i>=0; i--) {
+    hearts[i].updateHeart();
+    hearts[i].displayHeart();
+    
+    if (hearts[i].done == true) {
+      hearts.splice(i, 1);
+    }
+    
+  }
+
+}
+
+function mousePressed() {
+  hearts.push(new Heart(mouseX, mouseY));
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
+    </script>
+  </body>
+</html>
